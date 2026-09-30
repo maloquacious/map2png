@@ -234,7 +234,7 @@ The same input and flags give the same bytes: hexes and their rivers are drawn i
 
 ## Results
 
-On `hmz2map` v0.1.0's Panama maps at the default apothem (24), with outlines:
+On `hmz2map` v0.1.0's Panama maps (rivers from `hmz2riv` v0.2.0) at the default apothem (24), with outlines:
 
 | Measurement | Without border | With `-border` |
 | ----------- | -------------: | -------------: |
@@ -244,16 +244,16 @@ On `hmz2map` v0.1.0's Panama maps at the default apothem (24), with outlines:
 | Background pixels | 257,160 | 275,620 |
 | Ties | 0 | 0 |
 | Outline pixels | 2,102,447 | 2,341,224 |
-| River pixels | 161,650 | 161,547 |
+| River pixels | 161,398 | 161,304 |
 | PNG | 2.7 MB | 2.9 MB |
 | Time | 1.6 s | 1.5 s |
 | Peak memory | 460 MB | 515 MB |
 
-- River edges drawn: 2,759 `stream` (1 px), 1,246 `river` (2 px), and 138 `great-river` (3 px); 348 shore edges and 176 water edges are skipped. Mouths drawn: 102 `stream`, 68 `river`, and 16 `great-river`. The border changes none of these.
-- With `-wetlands-as-land`: 2,866 `stream`, 1,333 `river`, and 164 `great-river` edges drawn; 231 shore edges (154 on the coast, 77 on lake shores) and 73 water edges skipped; 84, 57, and 12 mouths; 170,595 river pixels without the border. The river-pixel counts differ slightly because the border shifts the map 4 columns, 6·s pixels, which isn't a whole number, so slanted sides cross the pixel grid differently.
+- River edges drawn: 2,750 `stream` (1 px), 1,246 `river` (2 px), and 138 `great-river` (3 px); 343 shore edges and 167 water edges are skipped. Mouths drawn: 102 `stream`, 68 `river`, and 16 `great-river`. The border changes none of these.
+- With `-wetlands-as-land`: 2,857 `stream`, 1,333 `river`, and 164 `great-river` edges drawn; 224 shore edges (147 on the coast, 77 on lake shores) and 66 water edges skipped; 84, 57, and 12 mouths; 170,343 river pixels without the border and 170,250 with it. The river-pixel counts differ slightly because the border shifts the map 4 columns, 6·s pixels, which isn't a whole number, so slanted sides cross the pixel grid differently.
 - No pixel center is in two hexes at this apothem, so the tie rule decides nothing here.
 
-Every pixel of both images, and of renders at apothems 4, 12, 13, and 37, with and without outlines, was cross-checked against an independent Python calculation written from the v0.1.0 README, with no mismatches. The shore-edge and mouth rules of v0.2.0 haven't been cross-checked yet.
+Every pixel of both images, of the `-wetlands-as-land` renders, and of renders at apothems 4, 12, 13, and 37, with and without outlines, was cross-checked against an independent Python calculation written from this README, with no mismatches.
 - About a third of the time is rendering and two-thirds PNG encoding. Memory is the image (4 bytes a pixel), the pixel-to-hex table (4 bytes a pixel), and a river mask (1 byte a pixel): about 9 bytes a pixel, so it grows with the square of the apothem.
 
 ## License
