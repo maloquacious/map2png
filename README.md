@@ -192,7 +192,7 @@ An edge between a land hex and a neighbor off the map is drawn.
 An edge with a wet hex on one side and land on the other is a **shore edge**; the rest (two wet hexes, or a wet hex and one off the map) are **water edges**. Neither is drawn.
 A river whose edges are all shore or water edges isn't drawn at all.
 
-**Mouths.** Where water flows into a wet hex, a mouth is drawn: a disc centered on the vertex, clipped to the wet hex.
+**Mouths.** Where water flows into a wet hex, a mouth is drawn: the part of a disc centered on the vertex that lies in pixels owned by the wet hex.
 A drawn edge's downstream vertex is its hex's `flow` corner, which must be one of the side's two corners (any other value is an error).
 That vertex is shared by the edge's two hexes and a third, the neighbor across the hex's other side at that corner: for side `n`, the third hex at corner `ne` is the one across side `ne`, and at corner `nw` the one across side `nw`; in general, the side one step clockwise at the side's clockwise corner, and one step counterclockwise at the other.
 If the third hex is on the map and wet, the edge has a mouth.
