@@ -157,6 +157,10 @@ func TestDecorateErrors(t *testing.T) {
 
 func TestLegendListsOnlyColorsOnTheMap(t *testing.T) {
 	m := overlayMap(5, 40)
+	m.At(0, 5).Landform, m.At(0, 5).Depth = hmz2map.LandformCliffs, ""
+	v := m.At(3, 5)
+	v.Landform, v.Biome, v.Depth, v.Flags = hmz2map.LandformMountains, hmz2map.BiomeSavanna, "", []hmz2map.Flag{hmz2map.FlagVolcano}
+	m.At(2, 1).Flags = []hmz2map.Flag{hmz2map.FlagImpassable}
 	_, rep, err := Render(m, Options{Apothem: 8})
 	if err != nil {
 		t.Fatal(err)
@@ -173,7 +177,10 @@ func TestLegendListsOnlyColorsOnTheMap(t *testing.T) {
 			}
 		}
 	}
-	want := []string{"Water:deep water", "Biome:savanna", "Relief:plains", "Relief:hills", "Rivers:stream"}
+	// The volcano's mountains are drawn magenta, so they add no relief
+	// entry; there are no badlands.
+	want := []string{"Water:deep water", "Impassable:cliffs", "Impassable:impassable land", "Features:volcano",
+		"Biome:savanna", "Relief:plains", "Relief:hills", "Rivers:stream"}
 	if strings.Join(got, ", ") != strings.Join(want, ", ") {
 		t.Errorf("legend %v, want %v", got, want)
 	}

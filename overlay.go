@@ -288,8 +288,9 @@ type legend struct {
 func label(s string) string { return strings.ReplaceAll(s, "-", " ") }
 
 // newLegend lays out the legend: the colors that appear on the map, in the
-// README's order. Column 1 holds the base colors; column 2 the land tints,
-// impassable land, and the river sizes drawn.
+// README's order. Column 1 holds the base colors, with impassable land
+// beside cliffs and badlands; column 2 the land tints and the river sizes
+// drawn.
 func newLegend(m *hmz2map.Map, rep Report, met metrics) legend {
 	seenColor := map[string]bool{}
 	seenSurface := map[hmz2map.Surface]bool{}
@@ -340,10 +341,14 @@ func newLegend(m *hmz2map.Map, rep Report, met metrics) legend {
 		add(&water, string(d), string(d)+" water", DepthColors[d])
 	}
 	add(&water, "fresh", "lake", FreshWaterColor)
-	terrain := legendSection{title: "Terrain"}
-	add(&terrain, "cliffs", "cliffs", CliffsColor)
-	add(&terrain, "badlands", "badlands", BadlandsColor)
-	add(&terrain, "volcano", "volcano", VolcanoColor)
+	blocked := legendSection{title: "Impassable"}
+	add(&blocked, "cliffs", "cliffs", CliffsColor)
+	add(&blocked, "badlands", "badlands", BadlandsColor)
+	if impassable {
+		blocked.entries = append(blocked.entries, legendEntry{label: "impassable land", fill: blend(TintSwatchColor, CliffsColor, ImpassableBlend)})
+	}
+	features := legendSection{title: "Features"}
+	add(&features, "volcano", "volcano", VolcanoColor)
 	surfaces := legendSection{title: "Surface"}
 	for _, s := range hmz2map.Surfaces {
 		if seenSurface[s] {
@@ -362,9 +367,6 @@ func newLegend(m *hmz2map.Map, rep Report, met metrics) legend {
 			relief.entries = append(relief.entries, legendEntry{label: label(string(lf)), fill: tint(TintSwatchColor, t)})
 		}
 	}
-	if impassable {
-		relief.entries = append(relief.entries, legendEntry{label: "impassable", fill: blend(TintSwatchColor, CliffsColor, ImpassableBlend)})
-	}
 	rivers := legendSection{title: "Rivers"}
 	for _, s := range hmz2map.RiverSizes {
 		if rep.EdgesDrawn[s] > 0 {
@@ -375,7 +377,7 @@ func newLegend(m *hmz2map.Map, rep Report, met metrics) legend {
 	}
 
 	lg := legend{met: met}
-	for _, sec := range []legendSection{water, terrain, surfaces, biomes} {
+	for _, sec := range []legendSection{water, blocked, features, surfaces, biomes} {
 		if len(sec.entries) > 0 {
 			lg.columns[0] = append(lg.columns[0], sec)
 		}

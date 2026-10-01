@@ -269,10 +269,11 @@ The legend lists only the colors that appear on the map, in this README's [Color
 | Column | Section | Entries |
 | ------ | ------- | ------- |
 | 1 | Water | inland sea, coast water, shallow water, open water, deep water, lake |
-| 1 | Terrain | cliffs, badlands, volcano |
+| 1 | Impassable | cliffs, badlands, then `impassable land` if any non-volcano land hex has the `impassable` flag |
+| 1 | Features | volcano |
 | 1 | Surface | each surface used by a non-volcano land hex |
 | 1 | Biome | each biome used by a non-volcano land hex with a `clear` surface |
-| 2 | Relief | each landform of a non-volcano land hex, then `impassable` if any non-volcano land hex has that flag |
+| 2 | Relief | each landform of a non-volcano land hex |
 | 2 | Rivers | each river size with at least one edge drawn |
 
 Section titles are the Section names above.
@@ -281,7 +282,7 @@ Labels are the names with `-` replaced by a space.
 
 The two kinds of entry:
 - **Base colors** have a hex swatch in their color.
-- **Relief swatches** are the reference gray `#a8a8a8` with the landform's tint (see [Land tint](#land-tint)); `impassable` is the gray blended 40% toward the cliff color.
+- **Relief swatches** are the reference gray `#a8a8a8` with the landform's tint (see [Land tint](#land-tint)); `impassable land` is that gray blended 40% toward the cliff color, so it sits beside cliffs.
 
 Layout, from the legend's top-left corner:
 - **Section title:** starts at the column's left edge, with its cap-height center `l/2` (truncated) below the title row's top. The title row is `l + p` tall.
@@ -344,7 +345,7 @@ On `hmz2map` v0.2.0's Panama maps (rivers from `hmz2riv` v0.3.0) at the default 
 - With `-compass top-right -legend bottom-right`:
   - The image is 5,783 × 10,680 px: a right panel 1,362 px wide.
   - The compass is a 406 px square at (4532, 96).
-  - The legend is 1,140 × 3,072 px at (4532, 7512) and lists 33 entries: 6 water, 2 terrain, 4 surfaces, 10 biomes, 7 relief, impassable, and 3 river sizes.
+  - The legend is 1,140 × 3,312 px at (4532, 7272) and lists 33 entries: 6 water, 2 impassable (cliffs and impassable land; Panama has no badlands), 1 feature, 4 surfaces, 10 biomes, 7 relief, and 3 river sizes.
 
 Every pixel of both images, of the `-wetlands-as-land` renders, and of renders at apothems 4, 12, 13, and 37, with and without outlines, was cross-checked against an independent Python calculation written from this README, with no mismatches.
 - About a third of the time is rendering and two-thirds PNG encoding. Memory is the image (4 bytes a pixel), the pixel-to-hex table (4 bytes a pixel), and a river mask (1 byte a pixel): about 9 bytes a pixel, so it grows with the square of the apothem.
