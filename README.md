@@ -249,7 +249,7 @@ All sizes come from the map's apothem `a` (`-apothem`):
 | Vertical margin `my` | `4a`: two map hexes tall |
 | Text | Go's `goregular` font at `l` px (72 DPI, no hinting), color `#202020` |
 
-A text's width is the sum of its glyphs' advance widths, each rounded to 1/64 px (Go's 26.6 fixed point), with the sum rounded up to a whole pixel; goregular has no kerning. A text's **cap-height center** is the point where the middle of a capital letter sits: the baseline is that `y` plus half the font's cap height (rounded, then halved with truncation).
+A text's width is the sum of its glyphs' advance widths, each rounded to the nearest 1/64 px, halves up (Go's 26.6 fixed point), with the sum rounded up to a whole pixel; goregular has no kerning. A text's **cap-height center** is the point where the middle of a capital letter sits: the baseline is that `y` plus half the font's cap height (rounded, then halved with truncation).
 
 ### Panels
 
