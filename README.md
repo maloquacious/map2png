@@ -67,12 +67,12 @@ height = 2a·R + a
 
 The last column's east corners are at x = 2s + 1.5·s·(C − 1), and the odd columns reach half a hex lower than the even ones.
 
-| Apothem | 107 × 222 map | 115 × 230 map (`-border`) |
+| Apothem | 106 × 222 map | 114 × 230 map (`-border`) |
 | ------: | ------------: | ------------------------: |
-|   12 px | 2,231 × 5,340 |             2,398 × 5,532 |
-|   16 px | 2,975 × 7,120 |             3,197 × 7,376 |
-|   20 px | 3,719 × 8,900 |             3,996 × 9,220 |
-|   24 px | 4,462 × 10,680 |           4,795 × 11,064 |
+|   12 px | 2,211 × 5,340 |             2,377 × 5,532 |
+|   16 px | 2,947 × 7,120 |             3,169 × 7,376 |
+|   20 px | 3,684 × 8,900 |             3,961 × 9,220 |
+|   24 px | 4,421 × 10,680 |           4,753 × 11,064 |
 
 ### Pixel ownership
 
@@ -234,23 +234,23 @@ The same input and flags give the same bytes: hexes and their rivers are drawn i
 
 ## Results
 
-On `hmz2map` v0.1.0's Panama maps (rivers from `hmz2riv` v0.2.0) at the default apothem (24), with outlines:
+On `hmz2map` v0.2.0's Panama maps (rivers from `hmz2riv` v0.3.0) at the default apothem (24), with outlines:
 
 | Measurement | Without border | With `-border` |
 | ----------- | -------------: | -------------: |
-| Map | 107 × 222 | 115 × 230 |
-| Image | 4,462 × 10,680 px | 4,795 × 11,064 px |
-| Pixels in hexes | 47,397,000 | 52,776,260 |
-| Background pixels | 257,160 | 275,620 |
+| Map | 106 × 222 | 114 × 230 |
+| Image | 4,421 × 10,680 px | 4,753 × 11,064 px |
+| Pixels in hexes | 46,954,332 | 52,317,180 |
+| Background pixels | 261,948 | 270,012 |
 | Ties | 0 | 0 |
-| Outline pixels | 2,102,447 | 2,341,224 |
-| River pixels | 161,398 | 161,304 |
+| Outline pixels | 2,082,911 | 2,320,754 |
+| River pixels | 159,685 | 159,681 |
 | PNG | 2.7 MB | 2.9 MB |
-| Time | 1.6 s | 1.5 s |
-| Peak memory | 460 MB | 515 MB |
+| Time | 1.7 s | 1.4 s |
+| Peak memory | 456 MB | 505 MB |
 
-- River edges drawn: 2,750 `stream` (1 px), 1,246 `river` (2 px), and 138 `great-river` (3 px); 343 shore edges and 167 water edges are skipped. Mouths drawn: 102 `stream`, 68 `river`, and 16 `great-river`. The border changes none of these.
-- With `-wetlands-as-land`: 2,857 `stream`, 1,333 `river`, and 164 `great-river` edges drawn; 224 shore edges (147 on the coast, 77 on lake shores) and 66 water edges skipped; 84, 57, and 12 mouths; 170,343 river pixels without the border and 170,250 with it. The river-pixel counts differ slightly because the border shifts the map 4 columns, 6·s pixels, which isn't a whole number, so slanted sides cross the pixel grid differently.
+- River edges drawn: 2,724 `stream` (1 px), 1,225 `river` (2 px), and 144 `great-river` (3 px); 358 shore edges and 153 water edges are skipped. Mouths drawn: 99 `stream`, 66 `river`, and 14 `great-river`. The border changes none of these.
+- With `-wetlands-as-land`: 2,842 `stream`, 1,307 `river`, and 169 `great-river` edges drawn; 220 shore edges (137 on the coast, 83 on lake shores) and 66 water edges skipped; 87, 54, and 11 mouths; 168,683 river pixels without the border and 168,681 with it. The river-pixel counts differ slightly because the border shifts the map 4 columns, 6·s pixels, which isn't a whole number, so slanted sides cross the pixel grid differently.
 - No pixel center is in two hexes at this apothem, so the tie rule decides nothing here.
 
 Every pixel of both images, of the `-wetlands-as-land` renders, and of renders at apothems 4, 12, 13, and 37, with and without outlines, was cross-checked against an independent Python calculation written from this README, with no mismatches.
