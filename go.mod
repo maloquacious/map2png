@@ -5,6 +5,7 @@ go 1.26.4
 require (
 	github.com/maloquacious/hmz2map v0.2.0
 	github.com/maloquacious/semver v0.4.1
+	golang.org/x/image v0.46.0
 )
 
 require (
@@ -14,4 +15,6 @@ require (
 	github.com/maloquacious/hmz2ele v0.4.0 // indirect
 	github.com/maloquacious/hmz2riv v0.3.0 // indirect
 	github.com/maloquacious/hmz2ter v0.2.0 // indirect
+	golang.org/x/sys v0.48.0 // indirect
+	golang.org/x/text v0.42.0 // indirect
 )

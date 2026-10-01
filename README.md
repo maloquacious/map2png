@@ -19,6 +19,7 @@ Flags:
 - `-apothem <px>` is a hex's apothem, the distance from its center to the middle of a side, in whole pixels. The default is `24`; the smallest is `4`.
 - `-outlines` draws hex outlines (see [Outlines](#outlines)). The default is on; `-outlines=false` turns them off.
 - `-wetlands-as-land` treats hexes with a `marshes`, `swamps`, or `mangroves` surface as land for rivers (see [Rivers](#rivers)). The default is off: they count as water, so no river is drawn along their sides.
+- `-legend <position>` adds a legend of the colors on the map, and `-compass <position>` a compass (see [Legend and compass](#legend-and-compass)). A position is `top-left`, `middle-left`, `bottom-left`, `top-right`, `middle-right`, or `bottom-right`. Both are off by default. Giving both the same position is an error.
 - `-version` prints the version.
 
 The command prints the time taken by each phase and the counts it drew.
@@ -96,7 +97,8 @@ Because `a` is a whole number and pixel centers are at half-pixels, no pixel cen
 ## Colors
 
 Every pixel of a hex has the hex's **fill color**, except its outline pixels (see [Outlines](#outlines)) and the pixels of river lines drawn over it.
-There's no anti-aliasing: every pixel is exactly one of these colors.
+There's no anti-aliasing: every pixel of the map is exactly one of these colors.
+This applies to the map area only; the legend and compass (see [Legend and compass](#legend-and-compass)) have anti-aliased text.
 
 ### Base colors
 
@@ -227,10 +229,96 @@ The distance to a segment is the distance to its nearest point, so line ends are
 Every river pixel has the same color, so the order in which lines are drawn doesn't matter.
 A river line can also cover pixels outside every hex (background) at the map's edge.
 
+## Legend and compass
+
+`-legend` and `-compass` draw in **panels** added beside the map; nothing is drawn over it.
+A position's side picks the panel: `left` adds a panel west of the map and shifts the map right by the panel's width, and `right` adds one east of it.
+A legend and a compass on the same side share one panel.
+Panels are as tall as the map and filled with the background color.
+Without either flag, the image is the map alone, byte for byte as before.
+
+All sizes come from the map's apothem `a` (`-apothem`):
+
+| Size | Value |
+| ---- | ----- |
+| Swatch and compass hex apothem `l` | `2a` |
+| Swatch hex side `sₗ` | `2l / √3` |
+| Swatch width | `⌈2·sₗ⌉` |
+| Pad `p` | `l / 2`, truncated |
+| Horizontal margin `mx` | `⌈8a / √3⌉`: two map hexes wide |
+| Vertical margin `my` | `4a`: two map hexes tall |
+| Text | Go's `goregular` font at `l` px (72 DPI, no hinting), color `#202020` |
+
+Text widths are the font's advance widths, rounded up to whole pixels. A text's **cap-height center** is the point where the middle of a capital letter sits: the baseline is that `y` plus half the font's cap height (rounded, then halved with truncation).
+
+### Panels
+
+A panel is `mx + w + mx` wide, where `w` is the widest overlay on that side.
+An overlay starts `mx` from the panel's inner edge (the map's edge for a right panel, the image's left edge for a left panel).
+Vertically, for an overlay `h` tall in a map `H` tall:
+- `top` puts its top at `my`;
+- `middle` at `⌊(H − h) / 2⌋`;
+- `bottom` at `H − my − h`.
+
+It's an error if an overlay is taller than `H − 2·my`, or if two overlays on one side come within `my` of each other.
+
+### Legend
+
+The legend lists only the colors that appear on the map, in this README's [Colors](#colors) order, in sections that are left out when empty:
+
+| Column | Section | Entries |
+| ------ | ------- | ------- |
+| 1 | Water | inland sea, coast water, shallow water, open water, deep water, lake |
+| 1 | Terrain | cliffs, badlands, volcano |
+| 1 | Surface | each surface used by a non-volcano land hex |
+| 1 | Biome | each biome used by a non-volcano land hex with a `clear` surface |
+| 2 | Relief | each landform of a non-volcano land hex, then `impassable` if any land hex has that flag |
+| 2 | Rivers | each river size with at least one edge drawn |
+
+A salt-water hex counts toward the one color it's drawn in, so a coast hex adds "coast water" and not its depth band.
+Labels are the names with `-` replaced by a space.
+
+The two kinds of entry:
+- **Base colors** have a hex swatch in their color.
+- **Relief swatches** are the reference gray `#a8a8a8` with the landform's tint (see [Land tint](#land-tint)); `impassable` is the gray blended 40% toward the cliff color.
+
+Layout, from the legend's top-left corner:
+- **Section title:** cap-height center `l/2` (truncated) below its top. The title row is `l + p` tall.
+- **Entry row:** `2l + p` tall.
+  - Hex swatch: centered `sₗ` right of the column's left edge and `l` below the row's top, with apothem `l`, in the map's orientation. A swatch pixel is a pixel whose center is in that hex under the [pixel ownership](#pixel-ownership) distance rule. With `-outlines`, a swatch pixel whose right or lower neighbor isn't a swatch pixel gets the outline color.
+  - Rivers: instead of a hex, a line from the swatch's west to east corner (through its center), in the river color, `RiverWidth(size, l)` pixels wide (twice the map's width), under the [river line rule](#rivers).
+  - Label: starts `swatch width + p` right of the column's left edge, with its cap-height center `l` below the row's top.
+- **Between sections:** `l`.
+- **Columns:** a column is as wide as its widest title or `swatch width + p + label width`. Column 2 starts `2l` right of column 1's right edge.
+- **Size:** the legend is as wide as its columns (and the gap) and as tall as its taller column.
+
+### Compass
+
+The compass shows map north and the eight directions N, NE, E, SE, S, SW, W, NW around a hex in the map's orientation, filled `#e8e8e8` and always outlined.
+Arrows point to the six directions that lead to a neighbor:
+
+| Orientation | Arrows (bearing, degrees clockwise from north) | Labels only |
+| ----------- | --------------------------------------------- | ----------- |
+| flat-top (every map today) | N 0, NE 60, SE 120, S 180, SW 240, NW 300 | E, W |
+| pointy-top | NE 30, E 90, SE 150, SW 210, W 270, NW 330 | N, S |
+
+The pointy-top diagonals aren't 45° bearings, but they are the names players use for those neighbors.
+The orientation comes from the map's `layout`.
+
+From the compass's center:
+- **Arrow shaft:** runs along its bearing from `1.25·l` to `1.75·l`, `max(2, l/8)` pixels wide (truncated), under the river line rule.
+- **Arrow head:** a triangle with its tip at `2.25·l` and a base `l/2` wide at `1.75·l`; a pixel is in it if its center is inside or on an edge.
+- **Labels:** centered at `3.25·l` along the arrow's bearing, or along the label's own bearing (a multiple of 45°) if it has no arrow. With the point rounded to whole pixels `(X, Y)`, a label `w` wide starts at `X − ⌊w/2⌋` with its cap-height center at `Y`.
+- **Colors:** arrows and labels are `#303030`, except N, which is `#c01010`.
+
+The compass is a square of side `2·(⌈h⌉ + p)`, where `h` is the largest of `|sin b|·3.25·l + w/2` and `|cos b|·3.25·l + c/2` over the labels. Here `b` is a label's bearing, `w` its width, and `c` the cap height.
+
+The command prints the map's rectangle in the image when there's a left panel, and the legend's and compass's rectangles.
+
 ## Output
 
 The PNG is 8-bit RGB, written with Go's `image/png` at its default compression (it drops the alpha channel of an opaque image).
-The same input and flags give the same bytes: hexes and their rivers are drawn in the map's order, nothing is taken from a Go map's iteration order, and no time or path is embedded.
+The same input and flags give the same bytes: hexes and their rivers are drawn in the map's order, nothing is taken from a Go map's iteration order, no time or path is embedded, and the legend's font is built into the program.
 
 ## Results
 
@@ -252,6 +340,10 @@ On `hmz2map` v0.2.0's Panama maps (rivers from `hmz2riv` v0.3.0) at the default 
 - River edges drawn: 2,724 `stream` (1 px), 1,225 `river` (2 px), and 144 `great-river` (3 px); 358 shore edges and 153 water edges are skipped. Mouths drawn: 99 `stream`, 66 `river`, and 14 `great-river`. The border changes none of these.
 - With `-wetlands-as-land`: 2,842 `stream`, 1,307 `river`, and 169 `great-river` edges drawn; 220 shore edges (137 on the coast, 83 on lake shores) and 66 water edges skipped; 87, 54, and 11 mouths; 168,683 river pixels without the border and 168,681 with it. The river-pixel counts differ slightly because the border shifts the map 4 columns, 6·s pixels, which isn't a whole number, so slanted sides cross the pixel grid differently.
 - No pixel center is in two hexes at this apothem, so the tie rule decides nothing here.
+- With `-compass top-right -legend bottom-right`:
+  - The image is 5,783 × 10,680 px: a right panel 1,362 px wide.
+  - The compass is a 406 px square at (4532, 96).
+  - The legend is 1,140 × 3,072 px at (4532, 7512) and lists 33 entries: 6 water, 2 terrain, 4 surfaces, 10 biomes, 7 relief, impassable, and 3 river sizes.
 
 Every pixel of both images, of the `-wetlands-as-land` renders, and of renders at apothems 4, 12, 13, and 37, with and without outlines, was cross-checked against an independent Python calculation written from this README, with no mismatches.
 - About a third of the time is rendering and two-thirds PNG encoding. Memory is the image (4 bytes a pixel), the pixel-to-hex table (4 bytes a pixel), and a river mask (1 byte a pixel): about 9 bytes a pixel, so it grows with the square of the apothem.

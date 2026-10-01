@@ -11,6 +11,7 @@ import (
 	"image/png"
 	"io"
 	"os"
+	"strings"
 	"time"
 
 	"github.com/maloquacious/hmz2map"
@@ -34,6 +35,8 @@ func run(args []string, stdout io.Writer) error {
 	apothem := fs.Int("apothem", 24, fmt.Sprintf("hex apothem in whole pixels, at least %d", map2png.MinApothem))
 	outlines := fs.Bool("outlines", true, "draw hex outlines")
 	wetlandsAsLand := fs.Bool("wetlands-as-land", false, "treat marshes, swamps, and mangroves as land for rivers")
+	legend := fs.String("legend", "", "add a legend at `position`: "+strings.Join(map2png.Positions, ", "))
+	compass := fs.String("compass", "", "add a compass at `position`: "+strings.Join(map2png.Positions, ", "))
 	showVersion := fs.Bool("version", false, "print the version and exit")
 	if err := fs.Parse(args); err != nil {
 		return err
@@ -52,6 +55,23 @@ func run(args []string, stdout io.Writer) error {
 	if *apothem < map2png.MinApothem {
 		return fmt.Errorf("-apothem %d is below the minimum of %d", *apothem, map2png.MinApothem)
 	}
+	var overlays map2png.Overlays
+	for _, o := range []struct {
+		name, value string
+		pos         **map2png.Position
+	}{{"legend", *legend, &overlays.Legend}, {"compass", *compass, &overlays.Compass}} {
+		if o.value == "" {
+			continue
+		}
+		p, err := map2png.ParsePosition(o.value)
+		if err != nil {
+			return fmt.Errorf("-%s: %w", o.name, err)
+		}
+		*o.pos = &p
+	}
+	if overlays.Legend != nil && overlays.Compass != nil && *overlays.Legend == *overlays.Compass {
+		return fmt.Errorf("-legend and -compass are both %s", overlays.Legend)
+	}
 	input := fs.Arg(0)
 	start := time.Now()
 	phase := func(name string) {
@@ -66,7 +86,12 @@ func run(args []string, stdout io.Writer) error {
 		return fmt.Errorf("%s: %w", input, err)
 	}
 	phase("read input")
-	img, rep, err := map2png.Render(&m, map2png.Options{Apothem: *apothem, Outlines: *outlines, WetlandsAsLand: *wetlandsAsLand})
+	opt := map2png.Options{Apothem: *apothem, Outlines: *outlines, WetlandsAsLand: *wetlandsAsLand}
+	mapImg, rep, err := map2png.Render(&m, opt)
+	if err != nil {
+		return fmt.Errorf("%s: %w", input, err)
+	}
+	img, pl, err := map2png.Decorate(mapImg, &m, rep, opt, overlays)
 	if err != nil {
 		return fmt.Errorf("%s: %w", input, err)
 	}
@@ -77,7 +102,16 @@ func run(args []string, stdout io.Writer) error {
 	phase("write output")
 
 	fmt.Fprintf(stdout, "map:              %d × %d, border %d\n", m.Columns, m.Rows, m.Border)
-	fmt.Fprintf(stdout, "image:            %d × %d px, apothem %d\n", rep.Width, rep.Height, *apothem)
+	fmt.Fprintf(stdout, "image:            %d × %d px, apothem %d\n", pl.Width, pl.Height, *apothem)
+	if pl.Width != rep.Width {
+		fmt.Fprintf(stdout, "map area:         %v\n", pl.Map)
+	}
+	if overlays.Legend != nil {
+		fmt.Fprintf(stdout, "legend:           %s, %v\n", overlays.Legend, pl.Legend)
+	}
+	if overlays.Compass != nil {
+		fmt.Fprintf(stdout, "compass:          %s, %v\n", overlays.Compass, pl.Compass)
+	}
 	fmt.Fprintf(stdout, "pixels:           %d in hexes, %d background, %d ties\n", rep.HexPixels, rep.BackgroundPixels, rep.Ties)
 	fmt.Fprintf(stdout, "outline pixels:   %d\n", rep.OutlinePixels)
 	fmt.Fprintf(stdout, "river edges:      ")
