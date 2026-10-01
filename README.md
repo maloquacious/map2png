@@ -249,12 +249,12 @@ All sizes come from the map's apothem `a` (`-apothem`):
 | Vertical margin `my` | `4a`: two map hexes tall |
 | Text | Go's `goregular` font at `l` px (72 DPI, no hinting), color `#202020` |
 
-Text widths are the font's advance widths, rounded up to whole pixels. A text's **cap-height center** is the point where the middle of a capital letter sits: the baseline is that `y` plus half the font's cap height (rounded, then halved with truncation).
+A text's width is the sum of its glyphs' advance widths, each rounded to 1/64 px (Go's 26.6 fixed point), with the sum rounded up to a whole pixel; goregular has no kerning. A text's **cap-height center** is the point where the middle of a capital letter sits: the baseline is that `y` plus half the font's cap height (rounded, then halved with truncation).
 
 ### Panels
 
 A panel is `mx + w + mx` wide, where `w` is the widest overlay on that side.
-An overlay starts `mx` from the panel's inner edge (the map's edge for a right panel, the image's left edge for a left panel).
+An overlay starts `mx` right of the image's left edge in a left panel, or `mx` right of the map's right edge in a right panel; two overlays on one side are left-aligned.
 Vertically, for an overlay `h` tall in a map `H` tall:
 - `top` puts its top at `my`;
 - `middle` at `⌊(H − h) / 2⌋`;
@@ -272,9 +272,10 @@ The legend lists only the colors that appear on the map, in this README's [Color
 | 1 | Terrain | cliffs, badlands, volcano |
 | 1 | Surface | each surface used by a non-volcano land hex |
 | 1 | Biome | each biome used by a non-volcano land hex with a `clear` surface |
-| 2 | Relief | each landform of a non-volcano land hex, then `impassable` if any land hex has that flag |
+| 2 | Relief | each landform of a non-volcano land hex, then `impassable` if any non-volcano land hex has that flag |
 | 2 | Rivers | each river size with at least one edge drawn |
 
+Section titles are the Section names above.
 A salt-water hex counts toward the one color it's drawn in, so a coast hex adds "coast water" and not its depth band.
 Labels are the names with `-` replaced by a space.
 
@@ -283,14 +284,14 @@ The two kinds of entry:
 - **Relief swatches** are the reference gray `#a8a8a8` with the landform's tint (see [Land tint](#land-tint)); `impassable` is the gray blended 40% toward the cliff color.
 
 Layout, from the legend's top-left corner:
-- **Section title:** cap-height center `l/2` (truncated) below its top. The title row is `l + p` tall.
+- **Section title:** starts at the column's left edge, with its cap-height center `l/2` (truncated) below the title row's top. The title row is `l + p` tall.
 - **Entry row:** `2l + p` tall.
   - Hex swatch: centered `sₗ` right of the column's left edge and `l` below the row's top, with apothem `l`, in the map's orientation. A swatch pixel is a pixel whose center is in that hex under the [pixel ownership](#pixel-ownership) distance rule. With `-outlines`, a swatch pixel whose right or lower neighbor isn't a swatch pixel gets the outline color.
   - Rivers: instead of a hex, a line from the swatch's west to east corner (through its center), in the river color, `RiverWidth(size, l)` pixels wide (twice the map's width), under the [river line rule](#rivers).
   - Label: starts `swatch width + p` right of the column's left edge, with its cap-height center `l` below the row's top.
 - **Between sections:** `l`.
 - **Columns:** a column is as wide as its widest title or `swatch width + p + label width`. Column 2 starts `2l` right of column 1's right edge.
-- **Size:** the legend is as wide as its columns (and the gap) and as tall as its taller column.
+- **Size:** the legend is as wide as its columns, plus the `2l` gap only when column 2 has a section, and as tall as its taller column.
 
 ### Compass
 
@@ -305,15 +306,15 @@ Arrows point to the six directions that lead to a neighbor:
 The pointy-top diagonals aren't 45° bearings, but they are the names players use for those neighbors.
 The orientation comes from the map's `layout`.
 
-From the compass's center:
+From the compass's center, the center of its square:
 - **Arrow shaft:** runs along its bearing from `1.25·l` to `1.75·l`, `max(2, l/8)` pixels wide (truncated), under the river line rule.
 - **Arrow head:** a triangle with its tip at `2.25·l` and a base `l/2` wide at `1.75·l`; a pixel is in it if its center is inside or on an edge.
-- **Labels:** centered at `3.25·l` along the arrow's bearing, or along the label's own bearing (a multiple of 45°) if it has no arrow. With the point rounded to whole pixels `(X, Y)`, a label `w` wide starts at `X − ⌊w/2⌋` with its cap-height center at `Y`.
+- **Labels:** centered at `3.25·l` along the arrow's bearing, or along the label's own bearing (a multiple of 45°) if it has no arrow. With the point rounded to whole pixels, halves away from zero, `(X, Y)`, a label `w` wide starts at `X − ⌊w/2⌋` with its cap-height center at `Y`.
 - **Colors:** arrows and labels are `#303030`, except N, which is `#c01010`.
 
-The compass is a square of side `2·(⌈h⌉ + p)`, where `h` is the largest of `|sin b|·3.25·l + w/2` and `|cos b|·3.25·l + c/2` over the labels. Here `b` is a label's bearing, `w` its width, and `c` the cap height.
+The compass is a square of side `2·(⌈h⌉ + p)`, where `h` is the largest of `|sin b|·3.25·l + w/2` and `|cos b|·3.25·l + c/2` over the labels. Here `b` is the bearing the label is placed at, `w` its width, and `c` the cap height rounded to a whole pixel.
 
-The command prints the map's rectangle in the image when there's a left panel, and the legend's and compass's rectangles.
+When any panel is added, the command prints the map's rectangle in the image and the legend's and compass's rectangles.
 
 ## Output
 
